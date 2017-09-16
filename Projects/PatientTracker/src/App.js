@@ -26,8 +26,8 @@ export class App extends Component{
             home: {screen: Home}
         });
         const Patient = TabNavigator({
+	    findpatient: {screen: FindPatient},
             addpatient: {screen: AddPatient},
-            findpatient: {screen: FindPatient},
             details: {screen: StackNavigator({
                 patientDetails: {screen: PatientDetails}
             })}
