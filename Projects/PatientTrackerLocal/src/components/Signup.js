@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {View, Text, AsyncStorage, TouchableOpacity} from 'react-native';
+import {View, Text, AsyncStorage, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Card, Button} from 'react-native-elements';
-import {Header, CardSection, Input, Link} from './common';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
+import {CardSection, Input} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 
 class Signup extends Component{
@@ -18,32 +19,46 @@ class Signup extends Component{
             let x = JSON.parse(userReg)
             console.log(x.userReg)
             if(x.userReg){
-                this.props.navigation.navigate('home')
+                this.props.navigation.dispatch(
+                    NavigationActions.navigate({
+                        routeName: 'home'
+                    })
+                )
             }
         })
     }
     componentDidUpdate(){
-        console.log("pop",this.props.isRegistered)
         if(this.props.isRegistered){
-            this.props.navigation.navigate('home')
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'home'
+                })
+            )
         }
     }
     onSignup(){
-        let user = {
-            name: this.state.name
+        if(this.state.name !== ''){
+            let user = {
+                name: this.state.name
+            }
+            this.props.signup(user)
         }
-        this.props.signup(user)
+        else{
+            alert("Please fill input fields")
+        }
     }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
-                <Header headerText="Patient Tracker Local"/>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER LOCAL', style: { color: '#fff' ,fontSize: 25, fontWeight: 'bold'} }} 
+                 />
                 <Card
-                title="Regiter"
+                title="Register"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{marginTop: 80, borderWidth: 2, borderColor: 'green', borderRadius:5}}>
                     <CardSection>
                         <Input 
                         label="Name:"

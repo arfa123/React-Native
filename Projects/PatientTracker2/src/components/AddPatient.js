@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import {View, Text, DatePickerAndroid, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, DatePickerAndroid, TimePickerAndroid, TouchableOpacity, ScrollView, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Card, Button} from 'react-native-elements';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
 import {CardSection, Input} from './common';
 import {PatientMiddleware} from '../store/middleware/patientMiddleware';
 
@@ -15,32 +16,64 @@ class AddPatient extends Component{
             disease:'',
             medication:'',
             appointmentDate:'',
+            appointmentTime:'',
             contactNo: ''
         }
     }
     componentDidMount(){
         this.onPatientAdded(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.props.navigation.dispatch(
+                NavigationActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({
+                            routeName: 'home'
+                        })
+                    ]
+                })
+            )
+            return true
+        })
+    }
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
     }
     componentWillReceiveProps(nextProps){
         this.onPatientAdded(nextProps)
     }
     onPatientAdded(props){
         if(props.patientAdded){
-            this.props.navigation.navigate('home')
+            this.props.navigation.dispatch(
+                NavigationActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({
+                            routeName: 'home'
+                        })
+                    ]
+                })
+            )
         }
     }
     addPatient(){
-        let patient = {
-            patientName: this.state.patientName,
-            age: this.state.age,
-            arrivalDate: this.state.arrivalDate,
-            disease: this.state.disease,
-            medication: this.state.medication,
-            appointmentDate: this.state.appointmentDate,
-            contactNo: this.state.contactNo,
-            userID: this.props.userID
+        if(this.state.patientName&&this.state.age&&this.state.arrivalDate&&this.state.disease&&this.state.medication&&this.state.contactNo !== ''){
+            let patient = {
+                patientName: this.state.patientName,
+                age: this.state.age,
+                arrivalDate: this.state.arrivalDate,
+                disease: this.state.disease,
+                medication: this.state.medication,
+                appointmentDate: this.state.appointmentDate,
+                appointmentTime: this.state.appointmentTime,
+                contactNo: this.state.contactNo,
+                userID: this.props.userID
+            }
+            this.props.addPatient(patient)
         }
-        this.props.addPatient(patient)
+        else{
+            alert("Please Fill all input fields!")
+        }
     }
     async setArrivalDate(){
         try {
@@ -48,6 +81,7 @@ class AddPatient extends Component{
                 date: new Date()
             });
             if(action == DatePickerAndroid.dateSetAction){
+                month = month + 1
                 this.setState({arrivalDate: day+'/'+month+'/'+year})
             }
         } catch ({code, message}) {
@@ -60,22 +94,57 @@ class AddPatient extends Component{
                 date: new Date()
             });
             if(action === DatePickerAndroid.dateSetAction){
+                month = month + 1
                 this.setState({appointmentDate: day+'/'+month+'/'+year})
             }
         } catch ({code, message}) {
             console.warn('Cannot open date picker', message);
         }
     }
+    async setAppointmentTime(){
+        try {
+            let {action, hour, minute} = await TimePickerAndroid.open({
+                is24Hour: false
+            });
+            if (action === TimePickerAndroid.timeSetAction) {
+                let midday = undefined
+                console.log("time:",hour, minute)
+                if(hour > 12){
+                    hour = hour - 12
+                    midday = 'PM'
+                }
+                else if(hour == 0){
+                    hour = 12
+                    midday = 'AM'
+                }
+                else if(hour == 12){
+                    hour = 12
+                    midday = 'PM'
+                }
+                else if(hour < 12){
+                    midday = 'AM'
+                }
+                this.setState({
+                    appointmentTime: hour+':'+minute+' '+midday
+                })
+            }
+        } catch ({code, message}) {
+            console.warn('Cannot open time picker', message);
+        }
+    }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER 2', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
                 <ScrollView>
                 <Card 
                 title="Add New Patient"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{marginBottom: 5, borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{marginTop: 80, marginBottom: 5, borderWidth: 2, borderColor: 'green', borderRadius:5}}>
                     <CardSection>
                         <Input 
                         label="Patient Name:"
@@ -114,19 +183,35 @@ class AddPatient extends Component{
                     </CardSection>
                     <CardSection>
                         <Input 
-                        label="Appointment Date:"
-                        value={this.state.appointmentDate}
-                        onFocus={() => this.setAppointment()}
-                        onChangeText={(appointmentDate) => this.setState({appointmentDate})}
-                        />
-                    </CardSection>
-                    <CardSection>
-                        <Input 
-                        label="Contact Number:"
-                        valuw={this.state.contactNo}
+                        label="Contact #:"
+                        value={this.state.contactNo}
                         onChangeText={(contactNo) => this.setState({contactNo})}
                         />
                     </CardSection>
+                    <Card
+                    title="Set Appointment"
+                    titleStyle={{fontSize:25}}
+                    wrapperStyle={{backgroundColor: '#ffffff'}}
+                    containerStyle={{borderWidth: 2, borderColor: 'red', borderRadius:5}}>
+                        <CardSection>
+                            <Input 
+                            label="Date:"
+                            placeholder="DD/MM/YY"
+                            onFocus={() => this.setAppointment()}
+                            value={this.state.appointmentDate}
+                            onChangeText={(appointmentDate) => this.setState({appointmentDate})}
+                            />
+                        </CardSection>
+                        <CardSection>
+                            <Input 
+                            label="Time:"
+                            placeholder="HH:MM AM/PM"
+                            onFocus={() => this.setAppointmentTime()}
+                            value={this.state.appointmentTime}
+                            onChangeText={(appointmentTime) => this.setState({appointmentTime})}
+                            />
+                        </CardSection>
+                    </Card>
                     <CardSection>
                         <Button 
                         Component={TouchableOpacity}

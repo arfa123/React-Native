@@ -1,6 +1,6 @@
 import * as PatientAction from '../action/patientAction';
 import axios from 'axios';
-import {ADD_PATIENT, GET_PATIENTS, REMOVE_PATIENT} from '../../api'
+import {ADD_PATIENT, GET_PATIENTS, REMOVE_PATIENT, GET_PATIENT, SAVE_PATIENT} from '../../api'
 
 export class PatientMiddleware{
     static addNewPatient = (patient) => {
@@ -41,14 +41,30 @@ export class PatientMiddleware{
             })
         }
     }
-    static patientSelected = (id) => {
+    static patientSelected = (ids) => {
         return (dispatch) => {
-            
+            console.log("ids:",ids)
+            axios.get(GET_PATIENT+'?userID='+ids.userID+'&'+'patientID='+ids.patientID)
+            .then((patient) => {
+                console.log("patient:",patient.data)
+                dispatch(PatientAction.patientSelected(patient.data))
+            })
+            .catch((err) => {
+                console.log("error",err)
+            })
         }
     }
     static savePatient = (patient) => {
         return (dispatch) => {
-            
+            console.log("patient:",patient)
+            axios.post(SAVE_PATIENT, patient)
+            .then((response) => {
+                console.log('patients:',response.data)
+                dispatch(PatientAction.patientSaved(response.data))
+            })
+            .catch((err) => {
+                console.log('error:',err)
+            })
         }
     }
 }

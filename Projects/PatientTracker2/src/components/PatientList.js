@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
 import {connect} from 'react-redux';
-import {Card, Divider} from 'react-native-elements';
-import {CardSection,Header,Heading} from './common';
 
 class PatientList extends Component{
     constructor(props){
@@ -11,19 +9,20 @@ class PatientList extends Component{
             patientID: undefined
         }
     }
-    componentDidUpdate(){
-        console.log('comDidUp',this.props.patientList)
-    }
     patientDetails(patient){
-        this.setState({patientID: patient._id})
-        this.props.visibleTabBar(patient._id)
+        if(this.props.selectedPatient === undefined){
+            this.props.visibleTabBar(patient._id)
+        }
+        else{
+            this.props.visibleTabBar(undefined)
+        }
     }
     render(){
         return(
             <View style={{flexDirection: 'column', justifyContent: 'flex-start', marginBottom: 20}}>
                 {this.props.patientList.filter((x) => {
                     if(this.props.findPatientBy === 'name'){
-                        return (x.patientName.indexOf(this.props.search) !== -1)
+                        return (x.name.toLowerCase().indexOf(this.props.search) !== -1)
                     }
                     if(this.props.findPatientBy === 'date'){
                         return (x.appointmentDate.indexOf(this.props.search) !== -1)
@@ -32,7 +31,8 @@ class PatientList extends Component{
                         return x
                     }
                 }).map((x,y) => {
-                    if(x._id === this.state.patientID){
+                    if(this.props.selectedPatient !== undefined){
+                        if(x._id === this.props.selectedPatient._id){
                         return(
                         <TouchableOpacity key={y} onPress={() => this.patientDetails(x)}>
                             <View style={[styles.containerStyle, {borderWidth: 5, borderColor: 'red'}]}>
@@ -57,12 +57,20 @@ class PatientList extends Component{
                                     <Text style={styles.textStyle}>{x.medication}</Text>
                                 </View>
                                 <View style={styles.sectionStyle}>
-                                    <Text style={styles.headingStyle}>Appointment Date:</Text>
+                                    <Text style={styles.headingStyle}>Contact #:</Text>
+                                    <Text style={styles.textStyle}>{x.contactNo}</Text>
+                                </View>
+                                <View style={styles.sectionStyle}>
+                                <Text style={styles.headingStyle}>Appointment:</Text>
+                                <View style={{flex: 2}}>
                                     <Text style={styles.textStyle}>{x.appointmentDate}</Text>
+                                    <Text style={styles.textStyle}>{x.appointmentTime}</Text>
+                                </View>
                                 </View>
                             </View>
                         </TouchableOpacity>
                         )
+                        }
                     }
                     return(
                     <TouchableOpacity key={y} onPress={() => this.patientDetails(x)}>
@@ -72,20 +80,11 @@ class PatientList extends Component{
                                 <Text style={styles.textStyle}>{x.patientName}</Text>
                             </View>
                             <View style={styles.sectionStyle}>
-                                <Text style={styles.headingStyle}>Arrival Date:</Text>
-                                <Text style={styles.textStyle}>{x.arrivalDate}</Text>
-                            </View>
-                            <View style={styles.sectionStyle}>
-                                <Text style={styles.headingStyle}>Disease:</Text>
-                                <Text style={styles.textStyle}>{x.disease}</Text>
-                            </View>
-                            <View style={styles.sectionStyle}>
-                                <Text style={styles.headingStyle}>Medication:</Text>
-                                <Text style={styles.textStyle}>{x.medication}</Text>
-                            </View>
-                            <View style={styles.sectionStyle}>
-                                <Text style={styles.headingStyle}>Appointment Date:</Text>
-                                <Text style={styles.textStyle}>{x.appointmentDate}</Text>
+                                <Text style={styles.headingStyle}>Appointment:</Text>
+                                <View style={{flex: 2}}>
+                                    <Text style={styles.textStyle}>{x.appointmentDate}</Text>
+                                    <Text style={styles.textStyle}>{x.appointmentTime}</Text>
+                                </View>
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -110,22 +109,23 @@ const styles = StyleSheet.create({
         flex: 1
     },
     headingStyle:{
-        fontSize: 18, 
+        fontSize: 20, 
         fontWeight: 'bold', 
-        padding: 10, 
-        flex: 1.5, 
+        padding: 8, 
+        flex: 1.6, 
         color: 'red'
     },
     textStyle:{
-        fontSize: 18, 
-        padding: 10, 
+        fontSize: 20, 
+        padding: 8, 
         flex: 2, 
         color: 'blue'
     }
 })
 const mapStateToProps = (state) => {
     return {
-        patientList: state.PatientReducer.patients
+        patientList: state.PatientReducer.patients,
+        selectedPatient: state.PatientReducer.selectedPatient
     }
 }
 

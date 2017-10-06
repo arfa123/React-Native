@@ -38,6 +38,9 @@ var userSchema = new Schema({
         appointmentDate:{
             type: String
         },
+        appointmentTime:{
+            type: String
+        },
         contactNo:{
             type: String
         }

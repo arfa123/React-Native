@@ -1,3 +1,6 @@
+AIzaSyAtTjG-YTq7swq8yBe5HBYtUAKOEl-C4XY
+AIzaSyCr457FugjAL6Z9XXizBx9TMOGGSub7Zg8
+
 …or create a new repository on the command line
 
 echo "# no" >> README.md

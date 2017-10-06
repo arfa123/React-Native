@@ -12,6 +12,8 @@ router.route('/signin').post(authController.signin);
 
 router.route('/addpatient').post(patientController.addPatient);
 router.route('/getpatients').get(patientController.getPatients);
+router.route('/getpatient').get(patientController.getPatient);
 router.route('/deletepatient').post(patientController.deletePatient);
+router.route('/savepatient').post(patientController.savePatient);
 
 module.exports = router;

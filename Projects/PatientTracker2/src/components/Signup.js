@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Card,Button} from 'react-native-elements';
-import {Heading, Header, CardSection, Input, Link, Spinner} from './common';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
+import {CardSection, Input, Link, Spinner} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 
 class Signup extends Component{
@@ -16,23 +17,39 @@ class Signup extends Component{
     }
     componentDidMount(){
         this.onAuthComplete(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            BackHandler.exitApp()
+            return true
+        })
+    }
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
     }
     componentWillReceiveProps(nextProps){
         this.onAuthComplete(nextProps)
     }
     onAuthComplete(props){
         if(props.isLogedIn){
-            this.props.navigation.navigate('home');
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'home'
+                })
+            )
         }
     }
     signup(){
-        this.props.loading()
-        let user = {
-            name: this.state.name,
-            email: this.state.email,
-            password: this.state.password
+        if(this.state.name && this.state.email && this.state.password !== ''){
+            this.props.loading()
+            let user = {
+                name: this.state.name,
+                email: this.state.email,
+                password: this.state.password
+            }
+            this.props.signup(user)
         }
-        this.props.signup(user)
+        else{
+            alert("Please fill all input fields")
+        }
     }
     loader(){
         if(this.props.loader){
@@ -60,16 +77,25 @@ class Signup extends Component{
             )
         }
     }
+    login(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'login'
+            })
+        )
+    }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
-                <Header headerText="Patient Tracker 2"/>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER 2', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
                 <Card 
                 title="Sign Up"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{marginTop: 80, borderWidth: 2, borderColor: 'green', borderRadius:5}}>
                     <CardSection>
                         <Input 
                         label="Name:"
@@ -105,7 +131,7 @@ class Signup extends Component{
                     </CardSection>
                 </Card>
                 <View>
-                    <Link onPress={() => navigate('login')}>Already have Account?</Link>
+                    <Link onPress={() => this.login()}>Already have Account?</Link>
                 </View>
             </View>
         )
@@ -116,7 +142,8 @@ const mapStateToProps = (state) => {
     return {
         user: state.AuthenticationReducer.user,
         error: state.AuthenticationReducer,
-        isLogedIn: state.AuthenticationReducer.isLogin
+        isLogedIn: state.AuthenticationReducer.isLogin,
+        loader: state.AuthenticationReducer.loader
     }
 }
 const mapDispatchToProps = (dispatch) => {

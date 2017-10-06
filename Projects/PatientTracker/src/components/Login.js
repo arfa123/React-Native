@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Card,Button} from 'react-native-elements';
-import {Heading, Header, CardSection, Link, Spinner, Input} from './common';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
+import {CardSection, Link, Spinner, Input} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 
 class Login extends Component{
@@ -14,26 +15,38 @@ class Login extends Component{
         }
     }
     componentDidMount(){
-        this.onAuthComplete(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            BackHandler.exitApp()
+            return true
+        })
+    }
+    componentWillUnmount(){
+        NavigationActions.reset({
+            index: 0
+        })
+        BackHandler.removeEventListener('hardwareBackPress')
     }
     componentDidUpdate(){
-        this.setState({errorMessage: this.props.error.message})
-    }
-    componentWillReceiveProps(nextProps){
-        this.onAuthComplete(nextProps)
-    }
-    onAuthComplete(props){
-        if(props.isLogedIn){
-            this.props.navigation.navigate('home')
+        if(this.props.isLogedIn){
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'home'
+                })
+            )
         }
     }
     login(){
-        this.props.loading()
-        let user = {
-            email: this.state.email,
-            password: this.state.password
+        if(this.state.email && this.state.password !== ''){
+            this.props.loading()
+            let user = {
+                email: this.state.email,
+                password: this.state.password
+            }
+            this.props.login(user)
         }
-        this.props.login(user)
+        else{
+            alert("Please fill all input fields")
+        }
     }
     loader(){
         if(this.props.loader){
@@ -61,24 +74,37 @@ class Login extends Component{
             )
         }
     }
+    clearMsg(){
+        this.props.clearmessage()
+    }
+    signup(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'auth',
+                action: NavigationActions.navigate({ routeName: 'signup'})
+            })
+        )
+    }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
-                <Header headerText="Patient Tracker"/>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
                 <Card 
                 title="Login"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5, marginTop: 80}}>
                     <CardSection>
-                            <Input
-                            label="Email:"
-                            onChangeText={(email) => this.setState({email})}
-                            keyboardType="email-address"
-                            placeholder="Enter Email"
-                            onFocus={() => this.props.clearmessage()}
-                            />
+                        <Input
+                        label="Email:"
+                        onChangeText={(email) => this.setState({email})}
+                        keyboardType="email-address"
+                        placeholder="Enter Email"
+                        onFocus={() => this.clearMsg()}
+                        />
                     </CardSection>
                     <CardSection>
                         <Input
@@ -86,7 +112,7 @@ class Login extends Component{
                         placeholder="Enter Password" 
                         secureTextEntry
                         onChangeText={(password) => this.setState({password})}
-                        onFocus={() => this.props.clearmessage()}
+                        onFocus={() => this.clearMsg()}
                         />
                     </CardSection>
                     <CardSection>
@@ -99,7 +125,7 @@ class Login extends Component{
                     </CardSection>
                 </Card>
                 <View>
-                    <Link onPress={() => navigate('signup')}>Create a new account</Link>
+                    <Link onPress={() => this.signup()}>Create a new account</Link>
                 </View>
             </View>
         )

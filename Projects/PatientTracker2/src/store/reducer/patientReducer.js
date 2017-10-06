@@ -2,7 +2,7 @@ const InitialState = {
     patientAdded: false,
     patientSaved: false,
     patients: [],
-    selectedPatient: {}
+    selectedPatient: undefined
 }
 
 export const PatientReducer = (state = InitialState, action) => {
@@ -16,7 +16,7 @@ export const PatientReducer = (state = InitialState, action) => {
         case 'PATIENT_SELECTED':
             return {...state, selectedPatient: action.payload}
         case 'PATIENT_SAVED':
-            return {...state, patients: Object.values(action.payload), patientSaved: true}
+            return {...state, patients: action.payload, patientSaved: true}
         case 'EDIT_PATIENT':
             return {...state, patientSaved: false}
         default:

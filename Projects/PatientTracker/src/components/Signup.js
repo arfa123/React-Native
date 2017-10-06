@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Card,Button} from 'react-native-elements';
-import {Heading, Header, CardSection, Input, Link, Spinner} from './common';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
+import {CardSection, Input, Link, Spinner} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 import {firebaseApp} from '../Firebase';
 
@@ -12,30 +13,32 @@ class Signup extends Component{
         this.state = {
             name: '',
             email: '',
-            password: '',
-            errorMessage: this.props.error.message
+            password: ''
         }
     }
-    componentDidMount(){
-        this.onAuthComplete(this.props)
-    }
-    componentWillReceiveProps(nextProps){
-        this.onAuthComplete(nextProps)
-    }
-    onAuthComplete(props){
-        if(props.isLogedIn){
-            this.props.navigation.navigate('home');
+    componentDidUpdate(){
+        if(this.props.isLogedIn){
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'home'
+                })
+            )
         }
     }
     signup(){
-        this.props.loading()
-        let user = {
-            name: this.state.name,
-            email: this.state.email,
-            password: this.state.password,
-            id: 0
+        if(this.state.name && this.state.email && this.state.password !== ''){
+            this.props.loading()
+            let user = {
+                name: this.state.name,
+                email: this.state.email,
+                password: this.state.password,
+                id: 0
+            }
+            this.props.signup(user)
         }
-        this.props.signup(user)
+        else{
+            alert("Please fill all input fields")
+        }
     }
     loader(){
         if(this.props.loader){
@@ -63,22 +66,32 @@ class Signup extends Component{
             )
         }
     }
+    login(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'auth',
+                action: NavigationActions.navigate({ routeName: 'login'})
+            })
+        )
+    }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
-                <Header headerText="Patient Tracker"/>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
                 <Card 
                 title="Sign Up"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5, marginTop: 80}}>
                     <CardSection>
                         <Input 
                         label="Name:"
                         placeholder="Enter Name"
                         onChangeText={(name) => this.setState({name})}
-                        onFocus={() => this.setState({errorMessage: ''})}
+                        onFocus={() => this.props.clearmessage()}
                         />
                     </CardSection>
                     <CardSection>
@@ -86,7 +99,7 @@ class Signup extends Component{
                         label="Email:" 
                         placeholder="Enter Email" 
                         onChangeText={(email) => this.setState({email})}
-                        onFocus={() => this.setState({errorMessage: ''})}
+                        onFocus={() => this.props.clearmessage()}
                         />
                     </CardSection>
                     <CardSection>
@@ -95,7 +108,7 @@ class Signup extends Component{
                         placeholder="Enter Password" 
                         secureTextEntry
                         onChangeText={(password) => this.setState({password})}
-                        onFocus={() => this.setState({errorMessage: ''})}
+                        onFocus={() => this.props.clearmessage()}
                         />
                     </CardSection>
                     <CardSection>
@@ -103,12 +116,12 @@ class Signup extends Component{
                     </CardSection>
                     <CardSection>
                         <View>
-                            <Text style={{color: 'red'}}>{this.state.errorMessage}</Text>
+                            <Text style={{color: 'red'}}>{this.props.error.message}</Text>
                         </View>
                     </CardSection>
                 </Card>
                 <View>
-                    <Link onPress={() => navigate('login')}>Already have Account?</Link>
+                    <Link onPress={() => this.login()}>Already have Account?</Link>
                 </View>
             </View>
         )
@@ -119,7 +132,8 @@ const mapStateToProps = (state) => {
     return {
         user: state.AuthenticationReducer.user,
         error: state.AuthenticationReducer.errorMessage,
-        isLogedIn: state.AuthenticationReducer.isLogin
+        isLogedIn: state.AuthenticationReducer.isLogin,
+        loader: state.AuthenticationReducer.loader
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -129,6 +143,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         signup: (user) => {
             return dispatch(AuthService.signupUser(user))
+        },
+        clearmessage: () => {
+            return dispatch({type: 'CLEAR_MSG'})
         }
     }
 }

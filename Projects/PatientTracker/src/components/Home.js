@@ -1,21 +1,30 @@
 import React, {Component} from 'react';
-import {View, Text, AsyncStorage} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Button,Card,CardSection,Header,Heading,Input,Link} from './common';
+import {NavigationActions} from 'react-navigation';
+import {Card, Button, Header} from 'react-native-elements';
+import {CardSection} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 import {firebaseApp} from '../Firebase';
 import {logoutSuccess,logoutReject} from '../store/action/authAction';
 
 class Home extends Component {
     componentDidMount(){
-        this.onAuthComplete(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.logout()
+            return true
+        })
     }
-    componentWillReceiveProps(nextProps){
-        this.onAuthComplete(nextProps)
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
     }
-    onAuthComplete(props){
-        if(props.login === false){
-            this.props.navigation.navigate('login');
+    componentDidUpdate(){
+        if(this.props.login === false){
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'login'
+                })
+            )
         }
     }
     logout(){
@@ -28,25 +37,90 @@ class Home extends Component {
         })
     }
     trackPatient(){
-        this.props.navigation.navigate('findpatient')
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'findpatient'
+            })
+        )
     }
     addPatient(){
-        this.props.navigation.navigate('addpatient')
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'addpatient'
+            })
+        )
     }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
-                <Card>
-                    <Heading headingText="Home"/>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
+                <Card
+                title="Home"
+                titleStyle={{fontSize:30}}
+                wrapperStyle={{backgroundColor: '#ffffff'}}
+                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5, marginTop: 80}}>
                     <CardSection>
-                        <Button onPress={() => this.logout()}>Logout</Button>
+                        <Text style={{color: 'red', fontSize: 15}}>Mr. {this.props.user.name}, Welcome to the Patient Tracker App</Text>
                     </CardSection>
                     <CardSection>
-                        <Button onPress={() => this.trackPatient()}>Track Patient</Button>
+                        <Button 
+                        Component={TouchableOpacity}
+                        title="Track Patient"
+                        color="#ffffff"
+                        fontSize= {24}
+                        fontWeight="bold"
+                        backgroundColor="blue"
+                        containerViewStyle={{
+                            backgroundColor:'#ffffff',
+                            alignSelf: 'stretch', 
+                            flex: 1,
+                            borderRadius: 2,
+                            borderWidth: 2,
+                            borderColor: 'blue',
+                            margin: 5}}
+                        onPress={() => this.trackPatient()}
+                        />
                     </CardSection>
                     <CardSection>
-                        <Button onPress={() => this.addPatient()}>Add New Patient</Button>
+                        <Button 
+                        Component={TouchableOpacity}
+                        title="Add New Patient"
+                        color="#ffffff"
+                        fontSize= {24}
+                        fontWeight="bold"
+                        backgroundColor="blue"
+                        containerViewStyle={{
+                            backgroundColor:'#ffffff',
+                            alignSelf: 'stretch', 
+                            flex: 1,
+                            borderRadius: 2,
+                            borderWidth: 2,
+                            borderColor: 'blue',
+                            margin: 5}}
+                        onPress={() => this.addPatient()}
+                        />
+                    </CardSection>
+                    <CardSection>
+                        <Button 
+                        Component={TouchableOpacity}
+                        title="Logout"
+                        color="#ffffff"
+                        fontSize= {24}
+                        fontWeight="bold"
+                        backgroundColor="blue"
+                        containerViewStyle={{
+                            backgroundColor:'#ffffff',
+                            alignSelf: 'stretch', 
+                            flex: 1,
+                            borderRadius: 2,
+                            borderWidth: 2,
+                            borderColor: 'blue',
+                            margin: 5}}
+                        onPress={() => this.logout()}
+                        />
                     </CardSection>
                 </Card>
             </View>

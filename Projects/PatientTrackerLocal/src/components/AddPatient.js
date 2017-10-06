@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity, DatePickerAndroid, ScrollView} from 'react-native';
+import {View,Text,TouchableOpacity,DatePickerAndroid,TimePickerAndroid,
+    ScrollView,AsyncStorage,BackHandler} from 'react-native';
 import {connect} from 'react-redux';
+import {NavigationActions} from 'react-navigation';
 import {Card, Button} from 'react-native-elements';
 import {CardSection, Input} from './common';
 import {PatientMiddleware} from '../store/middleware/patientMiddleware';
@@ -10,41 +12,92 @@ class AddPatient extends Component{
         super(props)
         this.state={
             name:'',
+            age:'',
             arrivalDate:'',
             disease:'',
             medication:'',
             appointmentDate:'',
+            appointmentTime:'',
             contactNo: ''
         }
     }
     componentDidMount(){
         this.onPatientAdded(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.props.navigation.dispatch(
+                NavigationActions.reset({
+                    index:0,
+                    actions: [
+                        NavigationActions.navigate({
+                            routeName: 'home'
+                        })
+                    ]
+                })
+            )
+            return true
+        })
+    }
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
     }
     componentWillReceiveProps(nextProps){
         this.onPatientAdded(nextProps)
     }
     onPatientAdded(props){
         if(props.patientAdded){
-            this.props.navigation.navigate('home')
+            this.props.navigation.dispatch(
+                NavigationActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({
+                            routeName: 'home'
+                        })
+                    ]
+                })
+            )
         }
     }
     addPatient(){
-        let patient = {
-            name: this.state.name,
-            arrivalDate: this.state.arrivalDate,
-            disease: this.state.disease,
-            medication: this.state.medication,
-            appointmentDate: this.state.appointmentDate,
-            contactNo: this.state.contactNo
+        if(this.state.name&&this.state.age&&this.state.arrivalDate&&this.state.disease&&this.state.medication&&this.state.contactNo !== ''){
+            AsyncStorage.getItem('id')
+            .then((id) => {
+                let idx = parseInt(id)
+                console.log("lol",idx)
+                let patient = {
+                    name: this.state.name,
+                    age: this.state.age,
+                    arrivalDate: this.state.arrivalDate,
+                    disease: this.state.disease,
+                    medication: this.state.medication,
+                    appointment: {
+                        date: this.state.appointmentDate,
+                        time: this.state.appointmentTime
+                    },
+                    contactNo: this.state.contactNo,
+                    id: idx
+                }
+                idx = idx+1
+                idx = idx.toString()
+                AsyncStorage.setItem('id',idx)
+                .then(() => {
+                    AsyncStorage.getItem('id')
+                    .then((id) => {
+                        this.props.addPatient(patient)
+                    })
+                })
+            })
         }
-        this.props.addPatient(patient)
+        else{
+            alert("Please Fill all input fields!")
+        }
     }
     async setArrivalDate(){
         try {
-            const {action, year, month, day} = await DatePickerAndroid.open({           
+            let {action, year, month, day} = await DatePickerAndroid.open({           
                 date: new Date()
             });
             if(action == DatePickerAndroid.dateSetAction){
+                month = month + 1
                 this.setState({arrivalDate: day+'/'+month+'/'+year})
             }
         } catch ({code, message}) {
@@ -53,18 +106,49 @@ class AddPatient extends Component{
     }
     async setAppointment(){
         try {
-            const {action, year, month, day} = await DatePickerAndroid.open({
+            let {action, year, month, day} = await DatePickerAndroid.open({
                 date: new Date()
             });
             if(action === DatePickerAndroid.dateSetAction){
+                month = month + 1
                 this.setState({appointmentDate: day+'/'+month+'/'+year})
             }
         } catch ({code, message}) {
             console.warn('Cannot open date picker', message);
         }
     }
+    async setAppointmentTime(){
+        try {
+            let {action, hour, minute} = await TimePickerAndroid.open({
+                is24Hour: false
+            });
+            if (action === TimePickerAndroid.timeSetAction) {
+                let midday = undefined
+                console.log("time:",hour, minute)
+                if(hour > 12){
+                    hour = hour - 12
+                    midday = 'PM'
+                }
+                else if(hour == 0){
+                    hour = 12
+                    midday = 'AM'
+                }
+                else if(hour == 12){
+                    hour = 12
+                    midday = 'PM'
+                }
+                else if(hour < 12){
+                    midday = 'AM'
+                }
+                this.setState({
+                    appointmentTime: hour+':'+minute+' '+midday
+                })
+            }
+        } catch ({code, message}) {
+            console.warn('Cannot open time picker', message);
+        }
+    }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
                 <ScrollView>
@@ -80,6 +164,14 @@ class AddPatient extends Component{
                         value={this.state.name}
                         onChangeText={(name) => this.setState({name})}
                         autoCapitalize="sentences"
+                        />
+                    </CardSection>
+                    <CardSection>
+                        <Input 
+                        label="Patient Age:"
+                        placeholder="Enter Patient Age"
+                        value={this.state.age}
+                        onChangeText={(age) => this.setState({age})}
                         />
                     </CardSection>
                     <CardSection>
@@ -109,21 +201,36 @@ class AddPatient extends Component{
                     </CardSection>
                     <CardSection>
                         <Input 
-                        label="Appointment Date:"
-                        placeholder="DD/MM/YY"
-                        onFocus={() => this.setAppointment()}
-                        value={this.state.appointmentDate}
-                        onChangeText={(appointmentDate) => this.setState({appointmentDate})}
-                        />
-                    </CardSection>
-                    <CardSection>
-                        <Input 
-                        label="Contact Number:"
+                        label="Contact #:"
                         placeholder="Enter Contact Number"
                         valuw={this.state.contactNo}
                         onChangeText={(contactNo) => this.setState({contactNo})}
                         />
                     </CardSection>
+                    <Card
+                    title="Set Appointment"
+                    titleStyle={{fontSize:25}}
+                    wrapperStyle={{backgroundColor: '#ffffff'}}
+                    containerStyle={{borderWidth: 2, borderColor: 'red', borderRadius:5}}>
+                        <CardSection>
+                            <Input 
+                            label="Date:"
+                            placeholder="DD/MM/YY"
+                            onFocus={() => this.setAppointment()}
+                            value={this.state.appointmentDate}
+                            onChangeText={(appointmentDate) => this.setState({appointmentDate})}
+                            />
+                        </CardSection>
+                        <CardSection>
+                            <Input 
+                            label="Time:"
+                            placeholder="HH:MM AM/PM"
+                            onFocus={() => this.setAppointmentTime()}
+                            value={this.state.appointmentTime}
+                            onChangeText={(appointmentTime) => this.setState({appointmentTime})}
+                            />
+                        </CardSection>
+                    </Card>
                     <CardSection>
                         <Button
                         Component={TouchableOpacity}

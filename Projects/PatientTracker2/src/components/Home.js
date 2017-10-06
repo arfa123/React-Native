@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {connect} from 'react-redux';
-import {Button, Card} from 'react-native-elements';
+import {NavigationActions} from 'react-navigation';
+import {Button, Card, Header} from 'react-native-elements';
 import {CardSection, Input} from './common';
 import {AuthService} from '../store/middleware/authMiddleware';
 import {logoutSuccess,logoutReject} from '../store/action/authAction';
@@ -9,33 +10,52 @@ import {logoutSuccess,logoutReject} from '../store/action/authAction';
 class Home extends Component {
     componentDidMount(){
         this.onAuthComplete(this.props)
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.logout()
+            return true
+        })
     }
     componentWillReceiveProps(nextProps){
         this.onAuthComplete(nextProps)
     }
     onAuthComplete(props){
         if(props.login === false){
-            this.props.navigation.navigate('login');
+            this.props.navigation.dispatch(
+                NavigationActions.navigate({
+                    routeName: 'login'
+                })
+            )
         }
     }
     logout(){
         this.props.signout()
     }
     trackPatient(){
-        this.props.navigation.navigate('findpatient')
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'findpatient'
+            })
+        )
     }
     addPatient(){
-        this.props.navigation.navigate('addpatient')
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'addpatient'
+            })
+        )
     }
     render(){
-        const {navigate} = this.props.navigation;
         return(
             <View>
+                <Header 
+                backgroundColor="blue"
+                centerComponent={{ text: 'PATIENT TRACKER 2', style: { color: '#fff' ,fontSize: 30, fontWeight: 'bold'} }} 
+                 />
                 <Card
                 title="Home"
                 titleStyle={{fontSize:30}}
                 wrapperStyle={{backgroundColor: '#ffffff'}}
-                containerStyle={{borderWidth: 2, borderColor: 'green', borderRadius:5}}>
+                containerStyle={{marginTop: 80, borderWidth: 2, borderColor: 'green', borderRadius:5}}>
                     <CardSection>
                         <Button 
                         Component={TouchableOpacity}

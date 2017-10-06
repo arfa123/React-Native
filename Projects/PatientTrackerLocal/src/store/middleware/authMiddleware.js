@@ -8,9 +8,12 @@ export class AuthService{
             .then((user) => {
                 AsyncStorage.setItem('patients',JSON.stringify([]))
                 .then(() => {
-                    AsyncStorage.setItem('userRegistered', JSON.stringify({userReg: true}))
+                    AsyncStorage.setItem('id','0')
                     .then(() => {
-                        dispatch(AuthAction.signupSuccess(JSON.parse(user)))
+                        AsyncStorage.setItem('userRegistered', JSON.stringify({userReg: true}))
+                        .then(() => {
+                            dispatch(AuthAction.signupSuccess(JSON.parse(user)))
+                        })
                     })
                 })
             })

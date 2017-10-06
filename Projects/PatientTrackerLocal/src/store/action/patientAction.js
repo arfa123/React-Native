@@ -16,3 +16,15 @@ export const patientList = (patients) => {
         payload: patients
     }
 }
+export const patientSelected = (patient) => {
+    return {
+        type: 'PATIENT_SELECTED',
+        payload: patient
+    }
+}
+export const patientSaved = (patients) => {
+    return {
+        type: 'PATIENT_SAVED',
+        payload: patients
+    }
+}
