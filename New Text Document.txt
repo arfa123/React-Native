@@ -1,6 +1,3 @@
-AIzaSyAtTjG-YTq7swq8yBe5HBYtUAKOEl-C4XY
-AIzaSyCr457FugjAL6Z9XXizBx9TMOGGSub7Zg8
-
 …or create a new repository on the command line
 
 echo "# no" >> README.md
@@ -31,3 +28,17 @@ cd android
 Generated apk will be located at android/app/build/outputs/apk
 
 P.S. Another approach might be to modify gradle scripts.
+
+Your projects in react-native can't have spaces in them, but you can change the app name directly in the android & ios projects.
+
+For android:
+go to android/app/src/main/res/values/string.xml and change app_name to your desired value.
+
+For ios:
+Go to ios/[currentName].xcodeproj/project.pbxproj and change the PRODUCT_NAME values, both in debug and release, from the current name to your new name.
+
+or go to ios/[currentName]/info.plist, find this:
+
+<key>CFBundleDisplayName</key>
+<string>${PRODUCT_NAME}</string>
+and replace the ${PRODUCT_NAME} with your desired name
