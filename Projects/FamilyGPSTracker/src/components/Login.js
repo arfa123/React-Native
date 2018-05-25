@@ -16,14 +16,10 @@ class Login extends Component{
     }
     componentWillMount(){
         // firebaseApp.auth().onAuthStateChanged((user) => {
-        //     console.log("user:",user,this.props.user)
         //     if(user){
-        //         this.props.redirect({name: user.displayName, email: user.email, uid: user.uid})
-        //         this.props.navigation.dispatch(
-        //             NavigationActions.navigate({
-        //                 routeName: 'map'
-        //             })
-        //         )
+        //         console.log("user:",user.uid)
+        //         this.props.loading()
+        //         this.props.getUser(user.uid)
         //     }
         // })
         BackHandler.addEventListener('hardwareBackPress', () => {
@@ -79,8 +75,7 @@ class Login extends Component{
     signup(){
         this.props.navigation.dispatch(
             NavigationActions.navigate({
-                routeName: 'auth',
-                action: NavigationActions.navigate({ routeName: 'signup'})
+                routeName: 'signup'
             })
         )
     }
@@ -90,7 +85,7 @@ class Login extends Component{
                 <Header backgroundColor="#4CAF50">
                     <Left style={{flex:0}}/>
                     <Body style={{alignItems:'center', flex: 1}}>
-                        <Title style={{fontSize: 40, fontWeight: 'bold'}}>Family Tracker</Title>
+                        <Title style={{fontSize: 30, fontWeight: 'bold'}}>Family GPS Tracker</Title>
                     </Body>
                     <Right style={{flex: 0}}/>
                 </Header>
@@ -146,8 +141,8 @@ const mapDispatchToProps = (dispatch) => {
         clearmessage: () => {
             return dispatch({type: 'CLEAR_MSG'})
         },
-        redirect: (user) => {
-            return dispatch({type: 'REDIRECT', payload: user})
+        getUser: (uid) => {
+            return dispatch(AuthService.getUser(uid))
         }
     }
 }

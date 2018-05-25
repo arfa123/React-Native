@@ -4,23 +4,48 @@ import {firebaseApp} from '../../Firebase';
 export class MapMiddleware{
     static userLocation = (location) => {
         return (dispatch) => {
-            const user = firebaseApp.auth().currentUser
-            if(user){
-                dispatch(MapAction.userLocation(location))
-            }
+            dispatch(MapAction.userLocation(location))
         }
     }
-    static getCircles = () => {
+    static getCircles = (user, location) => {
         return (dispatch) => {
-            const user = firebaseApp.auth().currentUser
-            if(user){
-                firebaseApp.database().ref(`Users/${user.uid}/createdCircles`)
+            let createdCircles = undefined;
+            let circles = undefined;
+            firebaseApp.database().ref(`Users/${user}/createdCircles`)
+            .once('value', (snap) => {
+                if(snap.val() !== null || undefined){
+                    createdCircles = Object.values(snap.val())
+                }
+            })
+            .then(() => {
+                firebaseApp.database().ref(`Users/${user}/circles`)
                 .once('value', (snap) => {
                     if(snap.val() !== null || undefined){
-                        dispatch(MapAction.circleAdded(Object.values(snap.val())))
+                        circles = Object.values(snap.val())
                     }
                 })
-            }
+                .then(() => {
+                    let Circles = {
+                        createdCircles: createdCircles,
+                        memberCircles: circles
+                    }
+                    if(Circles.createdCircles !== null || undefined){
+                        Circles.createdCircles.map((x,y) => {
+                            console.log("here:",x,location)
+                            firebaseApp.database().ref(`Circles/${x.circleID}/${user}/location`).set(location)
+                        })
+                    }
+                    if(Circles.memberCircles !== null || undefined){
+                        Circles.memberCircles.map((x,y) => {
+                            console.log("here:",x,location)
+                            firebaseApp.database().ref(`Circles/${x.circleID}/${user}/location`).set(location)
+                        })
+                    }
+                    console.log("here:",Circles)
+                    dispatch(MapAction.getCircles(Circles))
+                })
+            })
+            
         }
     }
     static addCircle = (circleName,location) => {
@@ -37,11 +62,10 @@ export class MapMiddleware{
                         circleID: circleID,
                         circleName: circleName
                     }
-                    firebaseApp.database().ref(`Users/${user.uid}/createdCircles`).push(circle)
+                    firebaseApp.database().ref(`Users/${user.uid}/createdCircles/${circle.circleID}`).set(circle)
                     .then(() => {
                         firebaseApp.database().ref(`Users/${user.uid}/createdCircles`)
                         .once('value', (snap) => {
-                            console.log("circles:",Object.values(snap.val()))
                             dispatch(MapAction.circleAdded(Object.values(snap.val())))
                         })
                     })
@@ -78,8 +102,13 @@ export class MapMiddleware{
         return (dispatch) => {
             firebaseApp.database().ref(`Users/${user.uid}/invitations`)
             .once('value', (snap) => {
+                console.log("lol1:",snap.val())
                 if(snap.val() !== null || undefined){
                     dispatch(MapAction.invitations(Object.values(snap.val())))
+                }
+                else{
+                    console.log("lol2:",snap.val())
+                    dispatch(MapAction.invitations([]))
                 }
             })
         }
@@ -92,16 +121,59 @@ export class MapMiddleware{
                 .then(() => {
                     firebaseApp.database().ref(`Circles/${circle.circleID}/${user.uid}/location`).set(location)
                     .then(() => {
-                        firebaseApp.database().ref(`Users/${user.uid}/circles`).push(circle)
+                        firebaseApp.database().ref(`Users/${user.uid}/circles/${circle.circleID}`).set(circle)
                         .then(() => {
                             firebaseApp.database().ref(`Users/${user.uid}/invitations`).orderByChild('circleID').equalTo(circle.circleID)
                             .once('value', (snap) => {
-                                console.log("here:",snap.val())
+                                firebaseApp.database().ref(`Users/${user.uid}/invitations`).child(Object.keys(snap.val())[0]).remove()
+                            })
+                            .then(() => {
+                                firebaseApp.database().ref(`Users/${user.uid}/invitations`)
+                                .once('value', (snap) => {
+                                    if(snap.val() !== null || undefined){
+                                        dispatch(MapAction.invitations(Object.values(snap.val())))
+                                    }
+                                    else{
+                                        dispatch(MapAction.invitations([]))
+                                    }
+                                })
                             })
                         })
                     })
                 })
             }
+        }
+    }
+    static rejectRequest = (circle) => {
+        return (dispatch) => {
+            const user = firebaseApp.auth().currentUser
+            if(user){
+                firebaseApp.database().ref(`Users/${user.uid}/invitations`).orderByChild('circleID').equalTo(circle.circleID)
+                .once('value', (snap) => {
+                    firebaseApp.database().ref(`Users/${user.uid}/invitations`).child(Object.keys(snap.val())[0]).remove()
+                })
+                .then(() => {
+                    firebaseApp.database().ref(`Users/${user.uid}/invitations`)
+                    .once('value', (snap) => {
+                        if(snap.val() !== null || undefined){
+                            dispatch(MapAction.invitations(Object.values(snap.val())))
+                        }
+                        else{
+                            dispatch(MapAction.invitations([]))
+                        }
+                    })
+                })
+            }
+        }
+    }
+    static getCircleMembers = (circle) => {
+        return (dispatch) => {
+            console.log("getMembers:",circle)
+            firebaseApp.database().ref(`Circles/${circle.circleID}`)
+            .once('value', (snap) => {
+                console.log("members:",snap.val())
+                dispatch(MapAction.circleMembers(Object.values(snap.val())))
+            })
         }
     }
 }

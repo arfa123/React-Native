@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { BackHandler } from 'react-native';
 import {connect} from 'react-redux';
-import {CardItem, Card, Text, Input, Item, Form, Container, Header, Content, Footer, Body, Title, Button} from 'native-base';
+import {NavigationActions} from 'react-navigation';
+import {Left, CardItem, Card, Text, Input, Item, Form, Container, Header, Content, Footer, Body, Title, Button} from 'native-base';
 import {MapMiddleware} from '../store/middlewares/mapMiddleware';
 
 class Invitations extends Component{
@@ -11,11 +12,21 @@ class Invitations extends Component{
             
         }
     }
-    componentDidMount(){
-        console.log("invitations:",this.props.invitations)
+    componentWillMount(){
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.goBack()
+            return true
+        })
     }
-    componentDidUpdate(){
-        console.log("invitations:",this.props.invitations)
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
+    }
+    goBack(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'map'
+            })
+        )
     }
     acceptRequest(x){
         const {circleName, circleID} = x
@@ -26,7 +37,7 @@ class Invitations extends Component{
         this.props.acceptRequest(this.props.currentLocation, circle)
     }
     rejectRequest(x){
-        console.log("circle:",x)
+        this.props.rejectRequest(x)
     }
     invitationsList(){
         if(this.props.invitations !== null || undefined){
@@ -62,6 +73,11 @@ class Invitations extends Component{
         return(
             <Container>
                 <Header>
+                    <Left>
+                        <Button onPress={() => this.goBack()}>
+                            <Text>Back</Text>
+                        </Button>
+                    </Left>
                     <Body>
                         <Title>Invitations</Title>
                     </Body>
@@ -90,6 +106,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         acceptRequest: (location, circle) => {
             dispatch(MapMiddleware.acceptRequest(location, circle))
+        },
+        rejectRequest: (circle) => {
+            dispatch(MapMiddleware.rejectRequest(circle))
         }
     }
 }

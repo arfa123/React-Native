@@ -4,7 +4,16 @@ export const userLocation = (location) => {
         payload: location
     }
 }
+export const getCircles = (circles) => {
+    circles.createdCircles.unshift("Select Circle")
+    circles.memberCircles.unshift("Select Circle")
+    return{
+        type: 'GET_CIRCLES',
+        payload: circles
+    }
+}
 export const circleAdded = (circles) => {
+    circles.unshift("Select Circle")
     return{
         type: 'CIRCLE_ADDED',
         payload: circles
@@ -20,5 +29,11 @@ export const invitations = (invitations) => {
     return{
         type: 'INVITATIONS',
         payload: invitations
+    }
+}
+export const circleMembers = (members) => {
+    return{
+        type: 'CIRCLE_MEMBERS',
+        payload: members
     }
 }

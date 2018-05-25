@@ -27,7 +27,7 @@ export const NavReducer = (state = initialState, action) => {
     case 'LOGOUT':
       nextState = AppNavigator.router.getStateForAction(
         NavigationActions.navigate({
-          routeName: 'auth'
+          routeName: 'login'
         }), state
       )
       break;
@@ -70,8 +70,8 @@ export const NavReducer = (state = initialState, action) => {
       nextState = AppNavigator.router.getStateForAction(action, state)
       break;
   }
-  console.log("nav:",state,"&",action)
+  // console.log("nav:",state,"&",action)
   // const nextState = AppNavigator.router.getStateForAction(action, state);
-  console.log("nav2:",nextState)
+  // console.log("nav2:",nextState)
   return nextState || state;
 };

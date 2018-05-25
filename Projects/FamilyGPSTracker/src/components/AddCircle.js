@@ -12,23 +12,33 @@ class AddCircle extends Component{
             circleName: ''
         }
     }
-    componentDidUpdate(){
-        console.log("location:",this.props.currentLocation)
-        if(this.props.circleAdded){
-            this.props.navigation.dispatch(
-                NavigationActions.navigate({
-                    routeName: 'map'
-                })
-            )
-        }
+    componentWillMount(){
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.goBack()
+            return true
+        })
+    }
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
+    }
+    goBack(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'map'
+            })
+        )
     }
     render(){
         return(
             <Container>
                 <Header>
-                    <Left></Left>
+                    <Left>
+                        <Button onPress={() => this.goBack()}>
+                            <Text>Back</Text>
+                        </Button>
+                    </Left>
                     <Body>
-                        <Title>Add Circle</Title>
+                        <Title>Create New Circle</Title>
                     </Body>
                     <Right></Right>
                 </Header>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { BackHandler } from 'react-native';
 import {connect} from 'react-redux';
+import {NavigationActions} from 'react-navigation';
 import {CardItem, Card, Text, Input, Item, Form, Container, Header, Content, Footer, Body, Title, Button} from 'native-base';
 import {MapMiddleware} from '../store/middlewares/mapMiddleware';
 
@@ -10,6 +11,22 @@ class Invite extends Component{
         this.state = {
             userEmail: ''
         }
+    }
+    componentWillMount(){
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.goBack()
+            return true
+        })
+    }
+    componentWillUnmount(){
+        BackHandler.removeEventListener('hardwareBackPress')
+    }
+    goBack(){
+        this.props.navigation.dispatch(
+            NavigationActions.navigate({
+                routeName: 'map'
+            })
+        )
     }
     sendInvitation(){
         const {user, findedUser, selectedCircle} = this.props
@@ -36,6 +53,11 @@ class Invite extends Component{
         return(
             <Container>
                 <Header>
+                    <Left>
+                        <Button onPress={() => this.goBack()}>
+                            <Text>Back</Text>
+                        </Button>
+                    </Left>
                     <Body>
                         <Title>Invite To This Circle</Title>
                     </Body>

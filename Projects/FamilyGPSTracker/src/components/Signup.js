@@ -57,8 +57,7 @@ class Signup extends Component{
     login(){
         this.props.navigation.dispatch(
             NavigationActions.navigate({
-                routeName: 'auth',
-                action: NavigationActions.navigate({ routeName: 'login'})
+                routeName: 'login'
             })
         )
     }
@@ -68,7 +67,7 @@ class Signup extends Component{
             <Header>
                 <Left style={{flex:0}}/>
                 <Body style={{alignItems:'center', flex: 1}}>
-                    <Title style={{fontSize: 40, fontWeight: 'bold'}}>Family Tracker</Title>
+                    <Title style={{fontSize: 30, fontWeight: 'bold'}}>Family GPS Tracker</Title>
                 </Body>
                 <Right style={{flex: 0}}/>
             </Header>

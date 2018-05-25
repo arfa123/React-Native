@@ -43,10 +43,12 @@ export class AuthService{
             })
         }
     }
-    static getUser = (dispatch, userResponse) => {
-        firebaseApp.database().ref('Users/' + userResponse.uid)
+    static getUser = (uid) => {
+        console.log("uid:",uid)
+        firebaseApp.database().ref(`Users/${uid}`)
         .once('value').then((snap) => {
-            dispatch(AuthAction.loginSuccess(snap.val()))
+            console.log("here:",snap.val())
+            // dispatch(AuthAction.loginSuccess(snap.val()))
         })
     }
 }
